@@ -2,16 +2,11 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour
 {
-    [SerializeField] private float speed = 100f;
-    [SerializeField] private float damage = 1f;
-    [SerializeField] private float lifetime = 3f; // Время жизни пули
+    public float speed = 10f;
+    public float damage = 1f;
+    public float lifetime = 3f; // Время жизни пули
 
     private Vector3 _direction; // Направление полета пули
-
-    public float Lifetime // Публичное свойство (getter) для получения значения lifetime в другом скрипте в обход типа "private"
-    {
-        get { return lifetime; }
-    }
 
     // Метод для инициализации пули
     public void Initialize(Vector3 direction)

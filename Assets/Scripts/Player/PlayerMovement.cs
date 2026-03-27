@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
+using System.Collections;
 
 
 [RequireComponent(typeof(CharacterController))]
@@ -14,12 +15,16 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private Vector3 moveDirection;
     private Transform cameraTransform;
+    private PlayerShooting _playerShooting;
+    private PlayerStats _playerStats;
 
     private void Awake()
     {
         controller = GetComponent<CharacterController>();
         // Кэшируем ссылку на главную камеру для расчетов
         if (Camera.main != null) cameraTransform = Camera.main.transform;
+        _playerShooting = GetComponent<PlayerShooting>();
+        _playerStats = GetComponent<PlayerStats>();
     }
 
     // Этот метод вызывается компонентом Player Input (через Send Messages)
@@ -47,16 +52,19 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = forward * moveInput.y + right * moveInput.x;
 
+        //Скорость движения
+        float finalSpeed = moveSpeed * _playerStats.moveSpeedMultiplier;
+
         // 2. Двигаем персонажа через CharacterController
-        controller.Move(moveDirection * moveSpeed * Time.deltaTime);
+        controller.Move(moveDirection * finalSpeed * Time.deltaTime);
 
         // 3. Поворачиваем персонажа лицом в сторону движения
-        if (moveDirection != Vector3.zero)
+        if (moveDirection != Vector3.zero && (_playerShooting == null || _playerShooting.FindNearestValidEnemy() == null))
         {
             Quaternion targetRotation = Quaternion.LookRotation(moveDirection);
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
-
+        
         // Добавляем простую гравитацию, чтобы куб не висел в воздухе
         if (!controller.isGrounded)
         {

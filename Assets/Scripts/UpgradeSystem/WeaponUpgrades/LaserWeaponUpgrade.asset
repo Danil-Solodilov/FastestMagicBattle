@@ -1,0 +1,20 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7702dffa408357447922de143a646b25, type: 3}
+  m_Name: LaserWeaponUpgrade
+  m_EditorClassIdentifier: Assembly-CSharp::NewWeaponUpgradeData
+  upgradeName: "\u0415\u0431\u0443\u0447\u0438\u0439 \u043F\u0443\u043B\u0435\u043C\u0451\u0442"
+  description: "\u041E\u0447\u0435\u043D\u044C \u043E\u043F\u0430\u0441\u043D\u043E\u0435
+    \u043E\u0440\u0443\u0436\u0438\u0435"
+  icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
+  type: 0
+  weaponToGive: {fileID: 11400000, guid: 6c094c45424cab94990d2742b3a7c5af, type: 2}
