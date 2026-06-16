@@ -31,7 +31,7 @@ public class EnemySpawner : MonoBehaviour
             _timer = 0;
 
             // ѕостепенно ускор€ем спавн, чтобы было сложнее
-            spawnInterval = Mathf.Max(0.5f, spawnInterval - 0.01f);
+            spawnInterval = Mathf.Max(0.3f, spawnInterval - 0.005f);
         }
     }
     private void SpawnEnemy()
@@ -55,12 +55,7 @@ public class EnemySpawner : MonoBehaviour
 
         // ¬ыбираем случайную точку на окружности вокруг игрока
         Vector2 randomCircle = Random.insideUnitCircle.normalized * spawnRadius;
-        Vector3 spawnPos = new Vector3(randomCircle.x, 0, randomCircle.y) + playerStats.transform.position;
-
-        //GameObject enemyObj = Instantiate(selectedEnemyData.prefab, spawnPos, Quaternion.identity);
-        //Enemy enemyScript = enemyObj.GetComponent<Enemy>();
-        //enemyScript.Setup(selectedEnemyData);
-        // ¬ будущем здесь тоже нужно использовать Object Pool дл€ врагов!
+        Vector3 spawnPos = new Vector3(randomCircle.x, 0f, randomCircle.y) + playerStats.transform.position;
 
         enemy.transform.position = spawnPos;
         enemy.Setup(selectedEnemyData, pool); // ѕередаем пул во врага

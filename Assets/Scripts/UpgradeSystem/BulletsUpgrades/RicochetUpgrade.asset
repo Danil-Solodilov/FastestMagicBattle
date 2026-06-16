@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c15505fb602476745bec8fa4ed139822, type: 3}
+  m_Name: RicochetUpgrade
+  m_EditorClassIdentifier: Assembly-CSharp::BulletModifierUpgradeData
+  upgradeName: "\u041F\u0443\u043B\u0438 \u0441 \u0440\u0438\u043A\u043E\u0448\u0435\u0442\u043E\u043C"
+  description: "\u041E\u0442\u0441\u043A\u0430\u043A\u0438\u0432\u0430\u044E\u0442
+    \u0432 \u0431\u043B\u0438\u0436\u0430\u0439\u0448\u0438\u0445 \u0432\u0440\u0430\u0433\u043E\u0432"
+  icon: {fileID: 21300000, guid: da1e967e5e1af4a469f01e4980ed57a7, type: 3}
+  type: 2
+  rarity: 0
+  groupID: Bullet
+  projectileType: 1
+  enableExplosions: 0
+  explosionRadiusSet: 0
+  ricochetCountSet: 3
+  extraRicochetRange: 10
+  NewBulletPrefab: {fileID: 256674340781396230, guid: b4a6de4ce7446d941b4e67d1213056e2, type: 3}

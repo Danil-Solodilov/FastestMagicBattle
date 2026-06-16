@@ -1,36 +1,46 @@
 using System.Collections; // Для IEnumerator
+using System;
 using UnityEngine;
 using UnityEngine.Pool; // Для использования Object Pool
-using System.Linq; // Для Linq методов
 
 [RequireComponent(typeof(PlayerMovement))] // Убедимся, что PlayerMovement есть
 public class PlayerShooting : MonoBehaviour
 {
     [Header("Current Weapon Settings")]
     [SerializeField] private WeaponData initialWeaponData; // Ссылка на базовый SO, который НЕ будет меняться
-    private WeaponData _runtimeWeaponData; // Эта копия будет меняться во время игры
+    [HideInInspector] public WeaponData _runtimeWeaponData; // Эта копия будет меняться во время игры
     [SerializeField] private Transform firePoint; // Точка, откуда вылетают пули
     [SerializeField] private Transform cameraTransform; // Трансформ камеры для определения направления
+    [SerializeField] private WeaponData initialWeaponDataForRuntime; // Для создания runtime-копии
+    public bool isCritical; // Флаг крит урона
 
     [Header("Targeting")]
     [SerializeField] private PlayerStats playerStats;
     [SerializeField] private float targetingRadius = 15f; // Радиус поиска врагов
     [SerializeField] private float lostTargetDistance = 17f; // Если враг ушел дальше этого, теряем цель
+    //[SerializeField] private GameObject targetPoint;
+
+    [Header("Obstacle Settings")]
+    [SerializeField] private LayerMask obstacleLayer; // Слой для стен, деревьев и т.д.
 
     private bool _isShooting = false; // Флаг состояния стрельбы
     private Transform _currentTarget; // Цель, которую мы атакуем в данный момент
 
-    //Скорость поворота к противнику
+    // Скорость поворота к противнику
     [Header("Rotation Settings")]
     [SerializeField] private float rotationSpeed = 10f;
 
-    //Пул пуль
+    // Пул пуль
     private ObjectPool<Bullet> _bulletPool;
     private Coroutine _shootingCoroutine; // Ссылка на корутину, чтобы можно было остановить
+
+    // Анимация
+    private Animator _animator;
 
     // В Awake создаем пул объектов
     private void Awake()
     {
+        if (_animator == null) _animator = GetComponent<Animator>();
         if (playerStats == null) playerStats = GetComponent<PlayerStats>();
         if (cameraTransform == null && Camera.main != null) cameraTransform = Camera.main.transform;
 
@@ -43,6 +53,7 @@ public class PlayerShooting : MonoBehaviour
 
         // Создаем runtime-копию WeaponData из исходного SO
         _runtimeWeaponData = Instantiate(initialWeaponData);
+        
 
         // Инициализируем пул
         _bulletPool = new ObjectPool<Bullet>(
@@ -52,10 +63,8 @@ public class PlayerShooting : MonoBehaviour
             actionOnDestroy: (bullet) => Destroy(bullet.gameObject), // Что делать, когда пул решает удалить пулю
             collectionCheck: false, // Отключить проверку, т.к. это может быть дорого
             defaultCapacity: 20, // Начальная вместимость
-            maxSize: 100 // Максимальное количество пуль в пуле
+            maxSize: 200 // Максимальное количество пуль в пуле
         );
-
-
     }
 
     //Создание пули для пула
@@ -83,8 +92,10 @@ public class PlayerShooting : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    private void Update()
     {
+        if (_runtimeWeaponData == null) return; // Не стреляем, если оружия нет
+
         // 1. Ищем или проверяем цель
         HandleTargeting();
 
@@ -93,11 +104,15 @@ public class PlayerShooting : MonoBehaviour
         {
             RotateTowardsTarget(_currentTarget.position);
 
-            if (!_isShooting) StartShooting();
+            if (!_isShooting)
+            {
+                StartShooting();
+            }
         }
-        else
+        else if(_isShooting)
         {
-            if (_isShooting) StopShooting();
+            StopShooting();
+            _animator.SetBool("Attack", false);
         }
     }
 
@@ -128,12 +143,8 @@ public class PlayerShooting : MonoBehaviour
         {
             _currentTarget = null;
         }
-
-        // Если цели нет — ищем новую
-        if (_currentTarget == null)
-        {
-            _currentTarget = FindNearestValidEnemy();
-        }
+       
+        _currentTarget = FindNearestValidEnemy();
     }
 
     public void StartShooting()
@@ -158,7 +169,7 @@ public class PlayerShooting : MonoBehaviour
         while (_isShooting) // Цикл зависит от флага _isShooting
         {
             Shoot();
-            yield return new WaitForSeconds(_runtimeWeaponData.baseFireRate); // Ждем перед следующим выстрелом
+            yield return new WaitForSeconds(Math.Clamp(_runtimeWeaponData.baseFireRate, 0.3f, 10)); // Ждем перед следующим выстрелом
         }
     }
 
@@ -171,11 +182,24 @@ public class PlayerShooting : MonoBehaviour
         Enemy enemy = target.GetComponent<Enemy>();
         if (enemy == null || enemy.IsDead) return false;
 
+        // --- ПРОВЕРКА ЛИНИИ ВИДИМОСТИ ---
+        Vector3 start = transform.position + Vector3.up * 1f; // Из груди игрока
+        Vector3 end = target.position + Vector3.up * 1f;   // В грудь врага
+        Vector3 direction = end - start;
+        float distance = direction.magnitude;
+
+        // Пускаем луч. Если он попадет в препятствие раньше, чем долетит до врага — цель невалидна.
+        if (Physics.Raycast(start, direction.normalized, out RaycastHit hit, distance, obstacleLayer))
+        {
+            return false; // На пути стена
+        }
+
         return true;
     }
 
     private void Shoot()
     {
+
         // КРИТИЧЕСКАЯ ПРОВЕРКА: прямо в момент выстрела проверяем всё еще раз
         if (!IsTargetValid(_currentTarget))
         {
@@ -183,7 +207,7 @@ public class PlayerShooting : MonoBehaviour
             return;
         }
 
-        // ПРОВЕРКА ДИСТАНЦИИ: чтобы не стрелять в тех, кто за радиусом (решает проблему "одного выстрела")
+        // ПРОВЕРКА ДИСТАНЦИИ: чтобы не стрелять в тех, кто за радиусом
         float distanceToTarget = Vector3.Distance(transform.position, _currentTarget.position);
         if (distanceToTarget > lostTargetDistance)
         {
@@ -193,7 +217,9 @@ public class PlayerShooting : MonoBehaviour
 
         if (_runtimeWeaponData == null) return;
 
-        Vector3 direction = (_currentTarget.position - firePoint.position).normalized;
+        _animator.SetBool("Attack", true);
+
+        Vector3 direction = (new Vector3(_currentTarget.position.x, 1.5f, _currentTarget.position.z) - firePoint.position).normalized;
 
         for (int i = 0; i < _runtimeWeaponData.projectilesPerShot; i++)
         {
@@ -205,44 +231,48 @@ public class PlayerShooting : MonoBehaviour
 
             // Если есть разброс, применяем его
             Vector3 spreadDirection = direction;
-            if (_runtimeWeaponData.bulletSpreadAngle > 0)
+            int count = Math.Clamp(_runtimeWeaponData.projectilesPerShot, 1, 30);
+            if (Math.Clamp(_runtimeWeaponData.bulletSpreadAngle, 0, 360) > 0)
             {
-                spreadDirection = Quaternion.Euler(0, Random.Range(-_runtimeWeaponData.bulletSpreadAngle / 2f, _runtimeWeaponData.bulletSpreadAngle / 2f), 0) * direction;
+                if (count == 1)
+                {
+                    // одна пуля — центр
+                    spreadDirection = Quaternion.Euler(0f, 0f, 0f) * direction;
+                }
+                else
+                {
+                    float step = Math.Clamp(_runtimeWeaponData.bulletSpreadAngle, 0, 360) / (count - 1); // шаг между снарядами
+                    float start = -Math.Clamp(_runtimeWeaponData.bulletSpreadAngle, 0, 360) * 0.5f;      // угол первого снаряда 
+                    float angle = start + i * step;
+                    spreadDirection = Quaternion.Euler(0f, angle, 0f) * direction;
+                }
             }
 
             // Устанавливаем направление
             bullet.transform.rotation = Quaternion.LookRotation(spreadDirection); // Чтобы пуля смотрела в сторону полета
 
+            // Новая логика крита
+            isCritical = false;
+            float critMul = 1f;
+            if (playerStats != null)
+            {
+                isCritical = playerStats.RollCritical();
+                critMul = isCritical ? playerStats.critMultiplier : 1f;
+            }
+
             // Инициализируем пулю с параметрами из WeaponData
-            bullet.Initialize(spreadDirection); // Направление уже включает разброс
-            bullet.speed = _runtimeWeaponData.baseProjectileSpeed; // Теперь пуля имеет публичное поле speed
-            bullet.damage = _runtimeWeaponData.baseDamage * playerStats.damageMultiplier; // И урон, который зависит от Player Stats
-            bullet.lifetime = _runtimeWeaponData.bulletLifetime; // И публичное свойство Lifetime
-            // Чтобы пуля вернулась в пул, когда она деактивируется (из-за столкновения или времени жизни)
-            bullet.GetComponent<MonoBehaviour>().StartCoroutine(ReleaseBulletAfterDelay(bullet, bullet.lifetime)); // Добавим немного задержки
+            bullet.Initialize(
+            spreadDirection,
+            _runtimeWeaponData.baseProjectileSpeed,
+            _runtimeWeaponData.baseDamage * playerStats.damageMultiplier,
+            _runtimeWeaponData.bulletLifetime,
+            _runtimeWeaponData.explosiveBullets,
+            _runtimeWeaponData.explosionRadius,
+            _runtimeWeaponData.ricochetCount,
+            isCritical,
+            critMul
+            );
         }
-    }
-
-    // Корутина для возврата пули в пул
-    private IEnumerator ReleaseBulletAfterDelay(Bullet bullet, float delay)
-    {
-        yield return new WaitForSeconds(delay);
-        if (bullet.gameObject.activeSelf) // Если пуля до сих пор активна (не попала никуда)
-        {
-            _bulletPool.Release(bullet);
-        }
-    }
-
-    // Новый публичный метод для смены оружия (для NewWeaponUpgradeData)
-    public void ChangeWeapon(WeaponData newWeapon)
-    {
-        StopShooting(); // Останавливаем старую стрельбу
-        // Создаем новую runtime-копию для нового оружия
-        _runtimeWeaponData = Instantiate(newWeapon);
-        // TODO: Возможно, потребуется пересоздать пул или очистить старый, 
-        // если новое оружие использует совсем другие пули.
-        // Для MVP пока просто заменим _runtimeWeaponData.
-        StartShooting(); // Запускаем новую стрельбу с новыми параметрами
     }
 
     public Transform FindNearestValidEnemy()
@@ -264,6 +294,28 @@ public class PlayerShooting : MonoBehaviour
             }
         }
         return closest;
+    }
+
+    public void RefreshBulletPool()
+    {
+        // 1. Если пул уже существует, очищаем его
+        if (_bulletPool != null)
+        {
+            // В Unity ObjectPool есть метод Clear(), который уничтожает все объекты в пуле
+            _bulletPool.Clear();
+        }
+
+        // 2. Пересоздаем пул. Теперь createFunc будет использовать НОВЫЙ префаб из _runtimeWeaponData
+        _bulletPool = new ObjectPool<Bullet>(
+            createFunc: () => CreatePooledBullet(), // Этот метод берет префаб из _runtimeWeaponData
+            actionOnGet: (bullet) => bullet.gameObject.SetActive(true),
+            actionOnRelease: (bullet) => bullet.gameObject.SetActive(false),
+            actionOnDestroy: (bullet) => Destroy(bullet.gameObject),
+            defaultCapacity: 20,
+            maxSize: 100
+        );
+
+        Debug.Log("Пул пуль обновлен на новый префаб: " + _runtimeWeaponData.bulletPrefab.name);
     }
 
     // Для визуализации радиуса поиска врагов в редакторе

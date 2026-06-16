@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 720f180f5a14dab4895150d41bf033bd, type: 3}
+  m_Name: SimpleCritDamageUpgradeData
+  m_EditorClassIdentifier: Assembly-CSharp::PlayerStatUpgradeData
+  upgradeName: "\u041A\u0440\u0438\u0442\u0438\u0447\u0435\u0441\u043A\u0438\u0439
+    \u0443\u0434\u0430\u0440"
+  description: "+10% \u043A \u043C\u043D\u043E\u0436\u0438\u0442\u0435\u043B\u044E
+    \u043A\u0440\u0438\u0442. \u0443\u0434\u0430\u0440\u0430"
+  icon: {fileID: 21300000, guid: 7a2181c228f80644b8029357fb1209fe, type: 3}
+  type: 1
+  rarity: 1
+  groupID: CritDamage
+  healthIncrease: 0
+  moveSpeedIncrease: 0
+  damageIncrease: 10
+  criticalChance: 0
+  critMultiplierUpgrade: 0

@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0bbbe3345881c4d9e66e6b9fee17cd, type: 3}
+  m_Name: TankZombieEnemyData
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: TankZombie
+  type: 0
+  prefab: {fileID: 5114987247239506621, guid: ff2e348ceaf3bc74ca14856b19d3f0c0, type: 3}
+  health: 100
+  speed: 1.5
+  experienceReward: 50
+  damage: 10
+  attackInterval: 2
+  unlockAtLevel: 6
+  stoppingDistance: 0
+  projectilePrefab: {fileID: 0}
+  skillPrefab: {fileID: 0}
+  projectileSpeed: 0

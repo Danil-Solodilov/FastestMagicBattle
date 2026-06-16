@@ -1,15 +1,14 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
 using System.Collections;
+using TMPro;
 
 
 [RequireComponent(typeof(CharacterController))]
 
 public class PlayerMovement : MonoBehaviour
 {
-    [Header("Movement Settings")]
-    [SerializeField] private float moveSpeed = 15f;
-    [SerializeField] private float rotationSpeed = 7f;
+    [SerializeField] private float rotationSpeed = 10f; //Скорость вращения игрока
 
     private CharacterController controller;
     private Vector2 moveInput;
@@ -17,6 +16,11 @@ public class PlayerMovement : MonoBehaviour
     private Transform cameraTransform;
     private PlayerShooting _playerShooting;
     private PlayerStats _playerStats;
+    private Animator _animator;
+
+
+    [Header("DownPanel UI")]
+    [SerializeField] private TextMeshProUGUI speedText; //Текст скорости
 
     private void Awake()
     {
@@ -25,17 +29,24 @@ public class PlayerMovement : MonoBehaviour
         if (Camera.main != null) cameraTransform = Camera.main.transform;
         _playerShooting = GetComponent<PlayerShooting>();
         _playerStats = GetComponent<PlayerStats>();
+        speedText.text = $"{_playerStats.moveSpeed}";
+        if (_animator == null) _animator = GetComponent<Animator>();
     }
 
     // Этот метод вызывается компонентом Player Input (через Send Messages)
-    public void OnMove(InputValue value)
+    public void OnMove(InputAction.CallbackContext context)
     {
-        moveInput = value.Get<Vector2>();
+        _animator.SetBool("IsMoving", true);
+        moveInput = context.ReadValue<Vector2>();
     }
 
     private void Update()
     {
         MovePlayer();
+
+        // Обновляем анимацию на основе того, есть ли у нас направление движения
+        bool isMoving = moveDirection.sqrMagnitude > 0.001f;
+        _animator.SetBool("IsMoving", isMoving);
     }
 
     private void MovePlayer()
@@ -52,11 +63,9 @@ public class PlayerMovement : MonoBehaviour
 
         moveDirection = forward * moveInput.y + right * moveInput.x;
 
-        //Скорость движения
-        float finalSpeed = moveSpeed * _playerStats.moveSpeedMultiplier;
-
         // 2. Двигаем персонажа через CharacterController
-        controller.Move(moveDirection * finalSpeed * Time.deltaTime);
+        controller.Move(moveDirection * Mathf.Clamp(_playerStats.moveSpeed, 0, 40f) * Time.deltaTime);
+        speedText.text = $"{Mathf.RoundToInt(_playerStats.moveSpeed)}";
 
         // 3. Поворачиваем персонажа лицом в сторону движения
         if (moveDirection != Vector3.zero && (_playerShooting == null || _playerShooting.FindNearestValidEnemy() == null))

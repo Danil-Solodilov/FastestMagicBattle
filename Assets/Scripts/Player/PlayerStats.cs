@@ -1,6 +1,5 @@
 using UnityEngine;
 using System;
-using UnityEngine.UI; // Для работы с UI элементами
 
 public class PlayerStats : MonoBehaviour
 {
@@ -15,12 +14,26 @@ public class PlayerStats : MonoBehaviour
 
     // Дополнительные статы (для апгрейдов)
     [Header("Player Attributes")]
+    public float moveSpeed = 15f; // Скорость движения
     public float moveSpeedMultiplier = 1f; // Множитель скорости движения
     public float damageMultiplier = 1f; // Множитель урона
     public float health = 100f; // Текущее здоровье
     public float maxHealth = 100f; // Максимальное здоровье
+    [Range(0f, 100f)] public float critChance = 0f; // шанс крита в процентах
+    [Min(1f)] public float critMultiplier = 1.5f; // множитель урона при крите
 
+    // Дополнительные статы (для скиллов)
+    [Header("Player Skills Bonuses")]
+    public bool isInvincible = false; // Неуязвимость
+    public float currentDamageReduction = 0f; // Снижение входящего урона (0f = нет снижения, 0.5f = 50% снижение)
 
+    // Переменные для эффектов от скиллов врагов
+    public bool isFrozen = false;
+    public bool isBurning = false;
+    public bool isStunning = false;
+
+    [Header("Player UI")]
+    [SerializeField] private GameObject UINumberPos;
 
     void Start()
     {
@@ -32,6 +45,7 @@ public class PlayerStats : MonoBehaviour
             Debug.LogWarning("Experience Curve is empty. Setting default values.");
             experienceCurve = AnimationCurve.EaseInOut(0, 100, 100, 100000); // Пример
         }
+        health = maxHealth;
     }
 
     //Добавление опыта
@@ -42,10 +56,11 @@ public class PlayerStats : MonoBehaviour
         currentExperience += amount;
         Debug.Log($"Получено {amount} опыта. Текущий опыт: {currentExperience}");
 
-        // Проверяем, достаточно ли опыта для следующего уровня
-        float expToNextLevel = GetExperienceRequiredForLevel(currentLevel + 1);
-        if (currentExperience >= expToNextLevel)
+        // Проверяем уровень в цикле, пока опыта хватает на новый уровень
+        while (currentLevel < maxLevel && currentExperience >= GetExperienceRequiredForLevel(currentLevel + 1))
         {
+            // Вычитаем стоимость уровня из текущего опыта, чтобы сохранить остаток
+            currentExperience -= GetExperienceRequiredForLevel(currentLevel + 1);
             LevelUp();
         }
     }
@@ -97,16 +112,49 @@ public class PlayerStats : MonoBehaviour
         return (currentExperience - expForCurrentLevel) / (expToNextLevel - expForCurrentLevel);
     }
 
+    // Восстановление здоровья
+    public void Heal(float amount)
+    {
+        health += amount;
+        if (health > maxHealth)
+        {
+            health = maxHealth;
+        }
+
+        // Цифры хила
+        if (HealNumberManager.Instance != null)
+        {
+            HealNumberManager.Instance.SpawnHealNumber(UINumberPos.transform.position + Vector3.up, amount);
+        }
+    }
+
+    // Шанс крита
+    public bool RollCritical()
+    {
+        return UnityEngine.Random.value < (Math.Clamp(critChance, 0f, 50f) / 100f);
+    }
+
     //Смерть игрока
     public void TakeDamage(float amount)
     {
-        health -= amount;
+        if (health <= 0) return; // Чтобы не умирать дважды
+        // Если игрок неуязвим
+        if (isInvincible)
+        {
+            Debug.Log("Игрок неуязвим!");
+            return;
+        }
+
+        float finalDamage = amount * (1f - currentDamageReduction); // Применяем снижение
+        if (finalDamage < 0) finalDamage = 0; // Урон не может быть отрицательным
+
+        health -= finalDamage;
+
         // Используем глобальный менеджер цифр урона
         if (DamageNumberManager.Instance != null)
         {
-            DamageNumberManager.Instance.SpawnDamageNumber(transform.position + Vector3.up, amount);
+            DamageNumberManager.Instance.SpawnDamageNumber(UINumberPos.transform.position + Vector3.up, finalDamage, RollCritical(), isBurning, isFrozen, isStunning);
         }
-        Debug.Log($"Игрок получил урон! Здоровье: {health}/{maxHealth}");
 
         if (health <= 0)
         {
@@ -117,7 +165,15 @@ public class PlayerStats : MonoBehaviour
     private void Die()
     {
         Debug.Log("Игрок погиб!");
-        // Пока просто перезагрузим сцену или поставим паузу
-        UnityEngine.SceneManagement.SceneManager.LoadScene(UnityEngine.SceneManagement.SceneManager.GetActiveScene().name);
+
+        // 1. Отключаем скрипты управления и стрельбы
+        GetComponent<PlayerMovement>().enabled = false;
+        GetComponent<PlayerShooting>().enabled = false;
+
+        // 2. Сообщаем UI менеджеру, что игра окончена
+        if (UISystem.Instance != null)
+        {
+            UISystem.Instance.ShowGameOver();
+        }
     }
 }

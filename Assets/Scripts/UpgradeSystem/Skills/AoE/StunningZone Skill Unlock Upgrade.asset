@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9cfe3061558284d408064a61e52482ec, type: 3}
+  m_Name: StunningZone Skill Unlock Upgrade
+  m_EditorClassIdentifier: Assembly-CSharp::SkillUnlockUpgrade
+  upgradeName: "\u041E\u0433\u043B\u0443\u0448\u0430\u044E\u0449\u0438\u0439 \u0423\u0434\u0430\u0440"
+  description: "\u041E\u0433\u043B\u0443\u0448\u0430\u0435\u0442 \u0432\u0441\u0435\u0445
+    \u0432\u0440\u0430\u0433\u043E\u0432 \u0432 \u043D\u0435\u0431\u043E\u043B\u044C\u0448\u043E\u0439
+    \u0437\u043E\u043D\u0435 \u0438 \u043D\u0430\u043D\u043E\u0441\u0438\u0442 \u0438\u043C
+    \u0443\u0440\u043E\u043D"
+  icon: {fileID: 21300000, guid: 8005c2643d64a5f40b00629ae3470f92, type: 3}
+  type: 3
+  rarity: 0
+  groupID: StunningZone
+  skillToUnlock: {fileID: 11400000, guid: 96e8f5e783677664286d59d037f97f29, type: 2}

@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 97057e826c78ba74583d2ea931221dc6, type: 3}
+  m_Name: SpreadAngleStatsUpgradeData
+  m_EditorClassIdentifier: Assembly-CSharp::WeaponStatsUpgradeData
+  upgradeName: "\u041C\u0443\u043B\u044C\u0442\u0438\u0432\u044B\u0441\u0442\u0440\u0435\u043B"
+  description: "+1 \u0441\u043D\u0430\u0440\u044F\u0434, +20 \u043A \u0440\u0430\u0437\u0431\u0440\u043E\u0441\u0443"
+  icon: {fileID: 21300000, guid: 4756cd51493e8074989707edfa720e3e, type: 3}
+  type: 0
+  rarity: 1
+  groupID: SpreadAngle
+  damageIncrease: 0
+  fireRateIncrease: 0
+  projectileSpeedIncrease: 0
+  bulletSpreadAngleIncrease: 20
+  bulletPerShot: 1

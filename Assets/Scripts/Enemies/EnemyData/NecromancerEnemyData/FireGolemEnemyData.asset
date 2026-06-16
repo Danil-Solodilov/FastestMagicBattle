@@ -1,0 +1,27 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ad0bbbe3345881c4d9e66e6b9fee17cd, type: 3}
+  m_Name: FireGolemEnemyData
+  m_EditorClassIdentifier: Assembly-CSharp::EnemyData
+  enemyName: FireGolem
+  type: 4
+  prefab: {fileID: 8087724293248260692, guid: 2bf8244dfa296f2499b60716d95862bd, type: 3}
+  health: 300
+  speed: 2
+  experienceReward: 10
+  damage: 30
+  attackInterval: 2
+  unlockAtLevel: 31
+  stoppingDistance: 16
+  projectilePrefab: {fileID: 0}
+  skillPrefab: {fileID: 7610604276416198977, guid: ae7d26e5ca8065e42a483ed1781242d6, type: 3}
+  projectileSpeed: 0
